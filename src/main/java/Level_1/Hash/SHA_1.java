@@ -10,6 +10,51 @@ public class SHA_1 {
     private final int WORD_SIZE = 32;
     private final long MODULO = (long) pow(2, 32);
 
+    private String SHA_1Hash(String message) {
+        long h0 = 0x67452301L;
+        long h1 = 0xEFCDAB89L;
+        long h2 = 0x98BADCFEL;
+        long h3 = 0x10325476L;
+        long h4 = 0xC3D2E1F0L;
+        int messageLengthInBits = message.length() * 8;
+
+        String padded = padMessage(message, messageLengthInBits);
+        List<List<Long>> words = divideIntoWords(padded);
+
+        for (int i = 0; i < words.size(); i++) {
+            List<Long> schedule = new ArrayList<>(80);
+            for (int j = 0; j < 16; j++) {
+                schedule.add(words.get(i).get(j));
+            }
+            for (int j = 16; j < 80; j++) {
+                schedule.add(ROTL(schedule.get(j - 3) ^ schedule.get(j - 8) ^ schedule.get(j - 14) ^ schedule.get(j - 16), 1));
+            }
+
+            long a = h0;
+            long b = h1;
+            long c = h2;
+            long d = h3;
+            long e = h4;
+
+
+            for (int t = 0; t < 80; t++) {
+                long T = (ROTL(a, 5) + f_t(b, c, d, t) + e + K_t(t) + schedule.get(t)) % MODULO;
+                e = d;
+                d = c;
+                c = ROTL(b, 30) % MODULO;
+                b = a;
+                a = T;
+            }
+
+            h0 = (h0 + a) % MODULO;
+            h1 = (h1 + b) % MODULO;
+            h2 = (h2 + c) % MODULO;
+            h3 = (h3 + d) % MODULO;
+            h4 = (h4 + e) % MODULO;
+        }
+
+        return Long.toHexString(h0) + Long.toHexString(h1) + Long.toHexString(h2) + Long.toHexString(h3) + Long.toHexString(h4);
+    }
 
     private List<List<Long>> divideIntoWords(String padded) {
         List<List<Long>> words = new ArrayList<>(padded.length() / BLOCK_SIZE);
@@ -81,7 +126,9 @@ public class SHA_1 {
     }
 
     public static void main(String[] args) {
+        SHA_1 hashFunction = new SHA_1();
 
+        System.out.println(hashFunction.SHA_1Hash("abc"));
 
 
     }
